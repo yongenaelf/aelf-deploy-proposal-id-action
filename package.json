@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "private": true,
   "scripts": {
     "build": "ncc build index.js --license licenses.txt",
     "dev": "node --env-file=.env.development --watch index.js"
@@ -15,6 +16,8 @@
     "aelf-sdk": "^3.4.4"
   },
   "release": {
-    "branches": ["main"]
+    "branches": [
+      "main"
+    ]
   }
 }
