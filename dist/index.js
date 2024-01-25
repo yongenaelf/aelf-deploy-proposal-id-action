@@ -1,6 +1,67 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 4966:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+// https://github.com/AElfProject/aelf-command/blob/master/src/utils/utils.js
+
+const AElf = __nccwpck_require__(5279);
+
+async function getProto(aelf, address) {
+  return AElf.pbjs.Root.fromDescriptor(
+    await aelf.chain.getContractFileDescriptorSet(address)
+  );
+}
+
+async function deserializeLogs(aelf, logs = []) {
+  if (!logs || logs.length === 0) {
+    return null;
+  }
+  let results = await Promise.all(logs.map((v) => getProto(aelf, v.Address)));
+  results = results.map((proto, index) => {
+    const { Name: dataTypeName, NonIndexed, Indexed = [] } = logs[index];
+    const serializedData = [...(Indexed || [])];
+    if (NonIndexed) {
+      serializedData.push(NonIndexed);
+    }
+    const dataType = proto.lookupType(dataTypeName);
+    let deserializeLogResult = serializedData.reduce((acc, v) => {
+      let deserialize = dataType.decode(Buffer.from(v, "base64"));
+      deserialize = dataType.toObject(deserialize, {
+        enums: String, // enums as string names
+        longs: String, // longs as strings (requires long.js)
+        bytes: String, // bytes as base64 encoded strings
+        defaults: false, // includes default values
+        arrays: true, // populates empty arrays (repeated fields) even if defaults=false
+        objects: true, // populates empty objects (map fields) even if defaults=false
+        oneofs: true, // includes virtual oneof fields set to the present field's name
+      });
+      return {
+        ...acc,
+        ...deserialize,
+      };
+    }, {});
+    // eslint-disable-next-line max-len
+    deserializeLogResult = AElf.utils.transform.transform(
+      dataType,
+      deserializeLogResult,
+      AElf.utils.transform.OUTPUT_TRANSFORMERS
+    );
+    deserializeLogResult = AElf.utils.transform.transformArrayToMap(
+      dataType,
+      deserializeLogResult
+    );
+    return deserializeLogResult;
+  });
+  return results;
+}
+
+module.exports = { deserializeLogs };
+
+
+/***/ }),
+
 /***/ 3402:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -60949,20 +61010,31 @@ var __webpack_exports__ = {};
 (() => {
 const core = __nccwpck_require__(3811);
 const AElf = __nccwpck_require__(5279);
+const { deserializeLogs } = __nccwpck_require__(4966);
 
 (async () => {
   try {
     const TRANSACTION_ID = core.getInput("transaction-id", { required: true });
     const NODE_URL = core.getInput("node-url", { required: true });
-    const EXPLORER_URL = core.getInput("explorer-url", { required: true });
 
     const aelf = new AElf(new AElf.providers.HttpProvider(NODE_URL));
 
     const transaction = await aelf.chain.getTxResult(TRANSACTION_ID);
 
-    console.log(transaction);
+    const deserializeLogResult = await deserializeLogs(aelf, transaction.Logs);
 
-    await core.summary.addDetails("transactionId", TRANSACTION_ID).write();
+    const proposalLog = deserializeLogResult?.pop();
+
+    if (proposalLog) {
+      const { proposalId } = proposalLog;
+      console.log("Proposal id:", proposalId);
+      core.setOutput("deployment-proposal-id", proposalId);
+
+      await core.summary
+        .addDetails("transactionId", TRANSACTION_ID)
+        .addDetails("proposalId", proposalId)
+        .write();
+    }
   } catch (error) {
     console.log(error);
     core.setFailed(error.message);
