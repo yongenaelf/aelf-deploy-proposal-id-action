@@ -8,6 +8,10 @@ inputs:
     description: "AElf Blockchain node url"
     required: true
     default: "https://tdvw-test-node.aelf.io"
+  explorer-url:
+    description: "AElf Explorer url"
+    required: true
+    default: "https://explorer-test-side02.aelf.io"
 outputs:
   deployment-proposal-id:
     description: "Deployment proposal id."

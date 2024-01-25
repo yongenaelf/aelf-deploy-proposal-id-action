@@ -61016,6 +61016,7 @@ const { deserializeLogs } = __nccwpck_require__(4966);
   try {
     const TRANSACTION_ID = core.getInput("transaction-id", { required: true });
     const NODE_URL = core.getInput("node-url", { required: true });
+    const EXPLORER_URL = core.getInput("explorer-url", { required: true });
 
     const aelf = new AElf(new AElf.providers.HttpProvider(NODE_URL));
 
@@ -61030,9 +61031,12 @@ const { deserializeLogs } = __nccwpck_require__(4966);
       console.log("Proposal id:", proposalId);
       core.setOutput("deployment-proposal-id", proposalId);
 
+      const link = `${EXPLORER_URL}/proposal/proposalsDetail/${proposalId}`;
+
       await core.summary
         .addDetails("transactionId", TRANSACTION_ID)
         .addDetails("proposalId", proposalId)
+        .addLink("View proposal on AElf Explorer", link)
         .write();
     }
   } catch (error) {

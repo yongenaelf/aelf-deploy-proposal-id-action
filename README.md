@@ -12,6 +12,10 @@ This GitHub Action fetches the proposal ID for a transaction ID of a `DeployUser
 
 **Required** AElf Blockchain node url. Default `"https://tdvw-test-node.aelf.io"`.
 
+### `explorer-url`
+
+**Required** AElf Explorer url. Default `"https://explorer-test-side02.aelf.io"`.
+
 ## Outputs
 
 ### `deployment-proposal-id`
@@ -22,6 +26,8 @@ Deployment proposal id.
 
 ```yaml
 uses: yongenaelf/aelf-deploy-proposal-id-action@v1.0.0
+with:
+  transaction-id: your-transaction-id
 ```
 
 ## For developers
@@ -49,9 +55,11 @@ Whenever you make changes to index.js, build and push using these commands:
 npm run build
 git add .
 git commit -m "feat: your commit message"
-git tag -a -m "My release message" v1.0.1 # tag if needed
-git push --follow-tags
 ```
+
+### Release
+
+Handled by semantic-release.
 
 ### References
 
