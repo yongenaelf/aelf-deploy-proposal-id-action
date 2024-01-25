@@ -1,5 +1,7 @@
 # AElf Deploy Proposal ID javascript action
 
+[![semantic-release: angular](https://img.shields.io/badge/semantic--release-angular-e10079?logo=semantic-release)](https://github.com/semantic-release/semantic-release)
+
 This GitHub Action fetches the proposal ID for a transaction ID of a `DeployUserSmartContract` transaction on the AElf blockchain.
 
 ## Inputs
