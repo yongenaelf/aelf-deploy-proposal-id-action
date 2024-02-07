@@ -1,6 +1,7 @@
 const core = require("@actions/core");
 const AElf = require("aelf-sdk");
 const { deserializeLogs } = require("./deserialize-logs");
+let sleep = require("util").promisify(setTimeout);
 
 (async () => {
   try {
@@ -10,7 +11,21 @@ const { deserializeLogs } = require("./deserialize-logs");
 
     const aelf = new AElf(new AElf.providers.HttpProvider(NODE_URL));
 
-    const transaction = await aelf.chain.getTxResult(TRANSACTION_ID);
+    let transaction = { Status: undefined },
+      retryCount = 0;
+
+    while (transaction.Status !== "MINED" && retryCount < 10) {
+      transaction = await aelf.chain.getTxResult(TRANSACTION_ID);
+      console.log("Transaction Status: ", transaction.Status);
+
+      if (transaction.Status !== "MINED") {
+        retryCount++;
+        await sleep(2000);
+      }
+    }
+
+    if (transaction.Status !== "MINED")
+      throw new Error("Transaction Status: ", transaction.Status);
 
     const deserializeLogResult = await deserializeLogs(aelf, transaction.Logs);
 
