@@ -61011,6 +61011,7 @@ var __webpack_exports__ = {};
 const core = __nccwpck_require__(3811);
 const AElf = __nccwpck_require__(5279);
 const { deserializeLogs } = __nccwpck_require__(4966);
+let sleep = (__nccwpck_require__(3837).promisify)(setTimeout);
 
 (async () => {
   try {
@@ -61020,7 +61021,21 @@ const { deserializeLogs } = __nccwpck_require__(4966);
 
     const aelf = new AElf(new AElf.providers.HttpProvider(NODE_URL));
 
-    const transaction = await aelf.chain.getTxResult(TRANSACTION_ID);
+    let transaction = { Status: undefined },
+      retryCount = 0;
+
+    while (transaction.Status !== "MINED" && retryCount < 10) {
+      transaction = await aelf.chain.getTxResult(TRANSACTION_ID);
+      console.log("Transaction Status: ", transaction.Status);
+
+      if (transaction.Status !== "MINED") {
+        retryCount++;
+        await sleep(2000);
+      }
+    }
+
+    if (transaction.Status !== "MINED")
+      throw new Error("Transaction Status: ", transaction.Status);
 
     const deserializeLogResult = await deserializeLogs(aelf, transaction.Logs);
 
