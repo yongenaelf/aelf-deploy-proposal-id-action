@@ -25,7 +25,7 @@ let sleep = require("util").promisify(setTimeout);
     }
 
     if (transaction.Status !== "MINED")
-      throw new Error("Transaction Status: ", transaction.Status);
+      throw new Error("Transaction Status: " + transaction.Status);
 
     const deserializeLogResult = await deserializeLogs(aelf, transaction.Logs);
 

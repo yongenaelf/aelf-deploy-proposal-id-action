@@ -61035,7 +61035,7 @@ let sleep = (__nccwpck_require__(3837).promisify)(setTimeout);
     }
 
     if (transaction.Status !== "MINED")
-      throw new Error("Transaction Status: ", transaction.Status);
+      throw new Error("Transaction Status: " + transaction.Status);
 
     const deserializeLogResult = await deserializeLogs(aelf, transaction.Logs);
 
